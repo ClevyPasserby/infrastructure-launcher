@@ -129,8 +129,18 @@ class InfoManager:
         local_copy = {}
 
         for index, value in self.content.items():
+            # ==============================================================
+            # START: Timestamp safety fix
+            # ==============================================================
             if index.endswith("_timestamp") and isinstance(value, datetime):
-                local_copy[index] = value.timestamp()
+                try:
+                    local_copy[index] = value.timestamp()
+                except OSError:
+                    # Use epoch timestamp for dates before 1970
+                    local_copy[index] = 0.0
+            # ==============================================================
+            # END: Timestamp safety fix
+            # ==============================================================
             elif index.endswith("_datetime") and isinstance(value, datetime):
                 local_copy[index] = value.isoformat()
             elif isinstance(value, uuid.UUID):
@@ -172,7 +182,14 @@ class InfoManager:
         Creates the missing indexes.
         """
 
+        # ==============================================================
+        # START: Use UTC datetime for Windows compatibility
+        # ==============================================================
         default_datetime = datetime.utcnow() - timedelta(days=15)
+        epoch_dt = datetime.utcfromtimestamp(0)
+        # ==============================================================
+        # END: Use UTC datetime for Windows compatibility
+        # ==============================================================
 
         indexes = {
             "currently_under_test": False,
@@ -315,10 +332,9 @@ class InfoManager:
         for index in [
             "days_until_next_test",
             "finish_timestamp",
-            "last_download_datetime"
             "last_download_timestamp"
-            "lastest_part_finish_timestamp",
-            "lastest_part_start_timestamp",
+            "latest_part_finish_timestamp",
+            "latest_part_start_timestamp",
             "start_timestamp",
         ]:
             if index in self.content and not isinstance(self.content[index], float):
@@ -331,54 +347,44 @@ class InfoManager:
                     float,
                 )
 
+        # ==============================================================
+        # START: Use UTC datetime for Windows compatibility
+        # ==============================================================
+        epoch_dt = datetime.utcfromtimestamp(0)
+        
         for index in [
             "finish_timestamp",
             "last_download_timestamp",
-            "lastest_part_finish_timestamp",
-            "lastest_part_start_timestamp",
+            "latest_part_finish_timestamp",
+            "latest_part_start_timestamp",
             "start_timestamp",
         ]:
             if index in self.content and not isinstance(self.content[index], datetime):
-                self.content[index] = datetime.fromtimestamp(self.content[index])
-
-                logging.debug(
-                    "Updated the %r index of the administration file, "
-                    "the system understands %r only."
-                    " (JSON => %s).",
-                    index,
-                    datetime,
-                    dict,
-                )
+                try:
+                    self.content[index] = datetime.utcfromtimestamp(self.content[index])
+                except OSError:
+                    self.content[index] = epoch_dt
 
         for index in [
             "finish_datetime",
             "last_download_datetime",
-            "lastest_part_finish_datetime",
-            "lastest_part_start_datetime",
+            "latest_part_finish_datetime",
+            "latest_part_start_datetime",
             "start_datetime",
         ]:
             if index in self.content:
                 if self.content[index] and not isinstance(
                     self.content[index], datetime
                 ):
-                    self.content[index] = datetime.fromisoformat(self.content[index])
-
-                    logging.debug(
-                        "Updated the %r index of the administration file, "
-                        "the system understands %r only."
-                        " (JSON => %r.",
-                        index,
-                        datetime,
-                        dict,
-                    )
+                    try:
+                        self.content[index] = datetime.fromisoformat(self.content[index])
+                    except ValueError:
+                        self.content[index] = epoch_dt
                 else:
-                    self.content[index] = datetime.fromtimestamp(0)
-
-                    logging.debug(
-                        "Set the %r index of the administration file, "
-                        "it was not previously set.",
-                        repr(index),
-                    )
+                    self.content[index] = epoch_dt
+        # ==============================================================
+        # END: Use UTC datetime for Windows compatibility
+        # ==============================================================
 
         for index in ["platform_container_id", "platform_remote_source_id"]:
             if index in self.content:
