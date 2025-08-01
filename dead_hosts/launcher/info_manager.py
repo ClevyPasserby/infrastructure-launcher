@@ -182,15 +182,10 @@ class InfoManager:
         Creates the missing indexes.
         """
 
-        # ==============================================================
-        # START: Use UTC datetime for Windows compatibility
-        # ==============================================================
+        
         default_datetime = datetime.utcnow() - timedelta(days=15)
         epoch_dt = datetime.utcfromtimestamp(0)
-        # ==============================================================
-        # END: Use UTC datetime for Windows compatibility
-        # ==============================================================
-
+        
         indexes = {
             "currently_under_test": False,
             "custom_pyfunceble_config": {},
