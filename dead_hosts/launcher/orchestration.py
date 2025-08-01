@@ -43,6 +43,7 @@ import sys
 import tempfile
 from datetime import datetime
 from typing import Optional
+import time  # Added import for timestamp handling
 
 import PyFunceble
 import PyFunceble.facility
@@ -169,10 +170,15 @@ class Orchestration:
                     "Could get the new version of the list. Updating the download time."
                 )
 
-                self.info_manager["last_download_datetime"] = datetime.utcnow()
-                self.info_manager["last_download_timestamp"] = self.info_manager[
-                    "last_download_datetime"
-                ].timestamp()
+                # ==============================================================
+                # START: Timestamp handling change
+                # ==============================================================
+                current_time = time.time()
+                self.info_manager["last_download_datetime"] = datetime.utcfromtimestamp(current_time)
+                self.info_manager["last_download_timestamp"] = current_time
+                # ==============================================================
+                # END: Timestamp handling change
+                # ==============================================================
             elif self.origin_file.exists():
                 logging.info(
                     "Raw link not given or is empty. Let's work with %r.",
@@ -183,10 +189,15 @@ class Orchestration:
 
                 logging.info("Emptying the download time.")
 
-                self.info_manager["last_download_datetime"] = datetime.fromtimestamp(0)
-                self.info_manager["last_download_timestamp"] = self.info_manager[
-                    "last_download_datetime"
-                ].timestamp()
+                # ==============================================================
+                # START: Timestamp handling change
+                # ==============================================================
+                epoch = 0.0
+                self.info_manager["last_download_datetime"] = datetime.utcfromtimestamp(epoch)
+                self.info_manager["last_download_timestamp"] = epoch
+                # ==============================================================
+                # END: Timestamp handling change
+                # ==============================================================
             else:
                 logging.info(
                     "Could not find %s. Generating empty content to test.",
@@ -197,10 +208,15 @@ class Orchestration:
 
                 logging.info("Emptying the download time.")
 
-                self.info_manager["last_download_datetime"] = datetime.fromtimestamp(0)
-                self.info_manager["last_download_timestamp"] = self.info_manager[
-                    "last_download_datetime"
-                ].timestamp()
+                # ==============================================================
+                # START: Timestamp handling change
+                # ==============================================================
+                epoch = 0.0
+                self.info_manager["last_download_datetime"] = datetime.utcfromtimestamp(epoch)
+                self.info_manager["last_download_timestamp"] = epoch
+                # ==============================================================
+                # END: Timestamp handling change
+                # ==============================================================
 
             logging.info("Updated %r.", self.origin_file.path)
 
@@ -233,25 +249,33 @@ class Orchestration:
         if not self.info_manager.currently_under_test:
             self.info_manager["currently_under_test"] = True
 
-            self.info_manager["start_datetime"] = datetime.utcnow()
-            self.info_manager["start_timestamp"] = self.info_manager[
-                "start_datetime"
-            ].timestamp()
+            # ==============================================================
+            # START: Timestamp handling change
+            # ==============================================================
+            current_time = time.time()
+            self.info_manager["start_datetime"] = datetime.utcfromtimestamp(current_time)
+            self.info_manager["start_timestamp"] = current_time
 
-            self.info_manager["finish_datetime"] = datetime.fromtimestamp(0)
-            self.info_manager["finish_timestamp"] = self.info_manager[
-                "finish_datetime"
-            ].timestamp()
+            epoch = 0.0
+            self.info_manager["finish_datetime"] = datetime.utcfromtimestamp(epoch)
+            self.info_manager["finish_timestamp"] = epoch
+            # ==============================================================
+            # END: Timestamp handling change
+            # ==============================================================
 
-        self.info_manager["latest_part_start_datetime"] = datetime.utcnow()
-        self.info_manager["latest_part_start_timestamp"] = self.info_manager[
-            "latest_part_start_datetime"
-        ].timestamp()
+        # ==============================================================
+        # START: Timestamp handling change
+        # ==============================================================
+        current_time = time.time()
+        self.info_manager["latest_part_start_datetime"] = datetime.utcfromtimestamp(current_time)
+        self.info_manager["latest_part_start_timestamp"] = current_time
 
-        self.info_manager["latest_part_finish_datetime"] = datetime.fromtimestamp(0)
-        self.info_manager["latest_part_finish_timestamp"] = self.info_manager[
-            "latest_part_finish_datetime"
-        ].timestamp()
+        epoch = 0.0
+        self.info_manager["latest_part_finish_datetime"] = datetime.utcfromtimestamp(epoch)
+        self.info_manager["latest_part_finish_timestamp"] = epoch
+        # ==============================================================
+        # END: Timestamp handling change
+        # ==============================================================
 
         logging.info("Updated all timestamps.")
         logging.info("Starting PyFunceble %r ...", PyFunceble.__version__)
@@ -270,10 +294,15 @@ class Orchestration:
             This is just about the administration file not PyFunceble.
         """
 
-        self.info_manager["latest_part_finish_datetime"] = datetime.utcnow()
-        self.info_manager["latest_part_finish_timestamp"] = self.info_manager[
-            "latest_part_finish_datetime"
-        ].timestamp()
+        # ==============================================================
+        # START: Timestamp handling change
+        # ==============================================================
+        current_time = time.time()
+        self.info_manager["latest_part_finish_datetime"] = datetime.utcfromtimestamp(current_time)
+        self.info_manager["latest_part_finish_timestamp"] = current_time
+        # ==============================================================
+        # END: Timestamp handling change
+        # ==============================================================
 
         self.write_trigger()
 
@@ -286,17 +315,19 @@ class Orchestration:
 
         self.info_manager["currently_under_test"] = False
 
-        self.info_manager["latest_part_finish_datetime"] = datetime.utcnow()
-        self.info_manager["latest_part_finish_timestamp"] = self.info_manager[
-            "latest_part_finish_datetime"
-        ].timestamp()
-
-        self.info_manager["finish_datetime"] = self.info_manager[
-            "latest_part_finish_datetime"
-        ]
-        self.info_manager["finish_timestamp"] = self.info_manager[
-            "finish_datetime"
-        ].timestamp()
+        # ==============================================================
+        # START: Timestamp handling change
+        # ==============================================================
+        current_time = time.time()
+        finish_dt = datetime.utcfromtimestamp(current_time)
+        
+        self.info_manager["latest_part_finish_datetime"] = finish_dt
+        self.info_manager["latest_part_finish_timestamp"] = current_time
+        self.info_manager["finish_datetime"] = finish_dt
+        self.info_manager["finish_timestamp"] = current_time
+        # ==============================================================
+        # END: Timestamp handling change
+        # ==============================================================
 
         logging.info("Updated all timestamps and indexes that needed to be updated.")
 
